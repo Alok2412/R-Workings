@@ -1,0 +1,144 @@
+---
+title: "ST661: Assignment 4"
+author: "Alok Kumar Singh"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Question 1
+a.
+```{r}
+library(tidyverse)
+library(ggplot2)
+suppressMessages(library(alr4))
+load("h4data")
+h4data1 <- mutate(wim, Ht_diff = winner_ht - loser_ht)
+head(h4data1)
+ggplot(data = h4data1) + geom_histogram(mapping = aes(x = Ht_diff))
+```
+b.
+```{r}
+w_wim <- select(wim,name = winner_name,points = winner_rank_points, ht  = winner_ht, ioc = winner_ioc)
+w_wim <- mutate(w_wim , wins = 1)
+l_wim <- select(wim,name = loser_name,points = loser_rank_points, ht  = loser_ht, ioc = loser_ioc)
+l_wim <- mutate(l_wim , wins = 0)
+wl_wim <- rbind(w_wim,l_wim)
+by_player <- group_by(wl_wim,name)
+by_player <- summarise(by_player,wins = sum(wins),points = points[1],ht = ht[1],ioc = ioc[1])
+by_player
+```
+c.
+```{r}
+print(paste("average height of players is :-"))
+mean(na.omit(by_player$ht))
+ggplot(data = by_player ) +geom_point(mapping = aes(x = wins, y = points))
+```
+
+d.
+```{r}
+
+winner_name<- filter(by_player , wins == max(by_player$wins))
+var_name <- c("name")
+print(paste("winner name :-"))
+winner_name[,var_name]
+```
+
+```{r}
+losing_finalist<- filter(by_player , wins == max(by_player$wins)-1)
+var_name <- c("name")
+print(paste("losing finalist name :-"))
+losing_finalist[,var_name]
+```
+
+e.
+```{r}
+by_player_per_country <- group_by(by_player,ioc)
+by_player_per_country <- summarise(by_player_per_country, wins = sum(wins,na.rm = T))
+head(by_player_per_country)
+filter(by_player_per_country,by_player_per_country$ioc == "ESP")
+```
+
+f.
+```{r}
+by_player_desc <- arrange(by_player_per_country,desc(wins))
+by_player_desc <- by_player_desc[1:10,]
+by_player_desc
+ggplot(data = by_player_desc, aes(x = reorder(ioc,-wins), y = wins)) +geom_bar(stat = "identity")
+```
+
+#### Question 2
+a.
+```{r}
+d <- read.csv("top40Univ.csv", stringsAsFactors = FALSE)
+d1 <- group_by(d,Location)
+d1 <- mutate(d,counts = 1)
+d1 <- d1 %>% group_by(Location) %>% summarise(counts=sum(counts))
+d1
+ggplot(data = d1,aes(x = Location,y= counts)) +geom_bar(stat = "identity")
+
+```
+b.
+```{r}
+ggplot(data = d1 , aes(x = fct_reorder(Location,-counts),y=counts))+ geom_bar(stat = "identity")
+```
+c.
+```{r}
+top5 <- function(x){
+  v <- c(1,2,3,4,5)
+ return(sum((x %in% v),na.rm=TRUE))
+ }
+x1 <- c(NA,10:1)
+x2 <- rnorm(8)
+x3 <- c(6,2,8,9,-1,0,4)
+cat(sprintf("The total number values from vector v(1,2,3,4,5) in the given vector i.e x1 is:-\n"))
+top5(x1)
+cat(sprintf("The total number values from vector v(1,2,3,4,5) in the given vector i.e x2 is:-\n"))
+top5(x2)
+cat(sprintf("The total number values from vector v(1,2,3,4,5) in the given vector i.e x3 is:-\n"))
+top5(x3)
+```
+
+d.
+```{r}
+total_count<- apply(d[,c(5,6,7,8,9)],1,top5)
+d <- mutate(d,total_count)
+head(d)
+```
+
+e.
+```{r}
+d$Quality.of.Education <- as.numeric(d$Quality.of.Education)
+sel <- c("Quality.of.Education","Publications","Influence","Citations","Broad.Impact")
+d1 <- d %>% mutate_at(sel, '<=', 5) %>%
+select(one_of(sel))%>%
+mutate(tc = rowSums(., na.rm=T))
+head(d1,8)
+d1$tc == d$total_count
+
+
+# In the above code a new dataset is created from d which considers the condition in which it check all the columns of the vector sel having the value greater or equal to 5 and rowsum function is used to sum all the true values of that row and assigning it to a new column tc.
+#next line of the code will check that the values of tc from d1 dataset is equal to total_count column of d dataset as we can see that all the values are TRUE.
+```
+
+
+f.
+```{r}
+d_top5 <-d %>% select(Institution) %>% filter(total_count >=1)
+d_top5
+```
+
+g.
+```{r}
+d <- mutate(d,Continent = ifelse(d$Location == "USA" | d$Location == "Canada","North America",ifelse(d$Location == "Japan" | d$Location == "South Korea","Asia","Europe")))
+head(d)
+```
+h.
+```{r}
+ggplot(data = d ) + geom_point(mapping = aes(x = Citations, y = Broad.Impact, color=Continent))
+```
+
+

@@ -1,0 +1,259 @@
+---
+title: "ST661: Assignment 2"
+author: "Nishant Kumar"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Question 1
+a.
+```{r}
+load("cdc1.Rdata")
+cdc1$exerany <-factor(cdc1$exerany)
+cdc1$smoke100 <- factor(cdc1$smoke100)
+cdc1$hlthplan <- factor(cdc1$hlthplan)
+levels(cdc1$exerany) <- c("no",  "yes")
+levels(cdc1$smoke100) <- c("no",  "yes")
+levels(cdc1$hlthplan) <- c("no",  "yes")
+cdc1$exerany
+cdc1$smoke100
+cdc1$hlthplan
+```
+
+b.
+```{r}
+malehlt <- subset(cdc1,gender == 'm')
+femalehlt <- subset(cdc1,gender == 'f')
+tabmal <- table(malehlt$genhlth)
+tabfemal <- table(femalehlt$genhlth)
+datamal <- tabmal/sum(tabmal)
+datafemal <- tabfemal/sum(tabfemal)
+print(paste("male health data :-"))
+datam <- c(datamal[1],datamal[2])
+sum(datam)
+print(paste("female health data :-"))
+dataf <- c(datafemal[1],datafemal[2])
+sum(dataf)
+tab2 <- table(cdc1$genhlth,cdc1$gender)
+prop.table(tab2,2)
+```
+
+c.
+```{r}
+smokersdata1 <- subset(cdc1,cdc1$smoke100 == 'yes')
+smokersdata1
+smokersdatamale1 <- subset(smokersdata1, gender == 'm')
+smokersdatafemale1 <- subset(smokersdata1, gender == 'f')
+smokersdatamaletab1 <- table(smokersdatamale1$genhlth)
+smokersdatafemaletab1 <- table(smokersdatafemale1$genhlth)
+datasmokersmale1 <- smokersdatamaletab1/sum(smokersdatamaletab1)
+datasmokersfemale1 <- smokersdatafemaletab1/sum(smokersdatafemaletab1)
+print(paste("male smokers data :-"))
+datasm1 <- c(datasmokersmale1[2],datasmokersmale1[1])
+sum(datasm1)
+
+print(paste("female  smokers data :-"))
+datasf1 <- c(datasmokersfemale1[2],datasmokersfemale1[1])
+sum(datasf1)
+tab3 <- table(smokersdata1$genhlth,smokersdata1$gender)
+prop.table(tab3,2)
+```
+
+d.
+```{r}
+smokersdata12 <- subset(cdc1,cdc1$smoke100 == 'no')
+smokersdata12
+smokersdatamale12 <- subset(smokersdata12, gender ==  'm')
+smokersdatafemale12 <- subset(smokersdata12, gender ==  'f')
+smokersdatamaletab12 <- table(smokersdatamale12$genhlth)
+smokersdatafemaletab12 <- table(smokersdatafemale12$genhlth)
+datasmokersmale12 <- smokersdatamaletab12/sum(smokersdatamaletab12)
+datasmokersfemale12 <- smokersdatafemaletab12/sum(smokersdatafemaletab12)
+print(paste("male smokers  data:-"))
+datasm12 <- c(datasmokersmale12[2],datasmokersmale12[1])
+sum(datasm12)
+print(paste(" female smokers data :-"))
+datasf12 <- c(datasmokersfemale12[2],datasmokersfemale12[1])
+sum(datasf12)
+tab4 <- table(smokersdata12$genhlth,smokersdata12$gender)
+prop.table(tab4,2)
+```
+
+e.
+```{r}
+comp <- table(cdc1$genhlth,cdc1$gender)
+print(paste("comparing the health between male and female"))
+comp
+cols <- c("seagreen3","steelblue4", "purple2", "sienna1","slategray3")
+print(paste("comparing the proportion of health between male and female"))
+prop.table(comp,2)
+barplot(prop.table(comp,2), beside=TRUE, col=cols,legend.text=TRUE,args.legend= (list(x=13.2,y=.4)))
+
+comp1 <- table(cdc1$genhlth,cdc1$smoke100)
+print(paste("comparing the health between smokers and non smokers"))
+comp1
+print(paste("comparing the proportion of health between smokers and non smokers"))
+prop.table(comp1,2)
+barplot(prop.table(comp1,2), beside=TRUE, col=1:5,legend.text=TRUE,args.legend= (list(x=13.2,y=.4)))
+
+```
+
+
+
+
+
+#### Question 2
+a.
+```{r}
+skew <- function(ipvar,na.rm = FALSE){
+      meanipvar <- mean(ipvar)
+  m31 <- ((ipvar - meanipvar)^3)/length(ipvar)
+  m3 <- sum(m31)
+  m21 <- ((ipvar-meanipvar)^2)/length(ipvar)
+  m2 <- sum(m21)
+  m3/(m2)^(3/2)
+  }
+  
+
+```
+
+b.
+```{r}
+skew(mtcars$wt)
+```
+
+c.
+```{r}
+skew(rnorm(50,0,1))
+```
+
+d.
+```{r}
+replicate(1000,skew(rnorm(50,0,1)))
+mean(replicate(1000,skew(rnorm(50,0,1))))
+hist(replicate(1000,skew(rnorm(50,0,1))))
+```
+
+e.
+```{r}
+print(paste("skew of 50 exponentialnumbers :-"))
+skew(rexp(1:50,1))
+print(paste("replicate skew of 50  exponential numbers 1000 times :-"))
+replicate(1000,skew(rexp(1:50,1)))
+print(paste("mean skewness  value :-"))
+mean(replicate(1000,skew(rexp(1:50,1))))
+print(paste("histogr:-"))
+hist(replicate(1000,skew(rexp(1:50,1))))
+
+```
+
+f.
+```{r}
+#Theorotical comparision
+#1000 values of skewness of 1000 samples of standard normal distribution with sample size 50 is a N.D with mean #of skewness equals to 0 same as mean of individual sample 
+#whereas histogram of e 1000 sample values of skewness of 1000 samples of exponential distribution with sample #size 50 is a positively skewed exponential distribution with mean of skewness greater than that of mean of #individual sample
+```
+
+g.
+```{r}
+sapply(cdc1,function(x)ifelse(is.numeric(x),skew(x),NA))
+```
+
+
+#### Question 3
+a.
+```{r}
+color1 <- ifelse(cdc1$weight > cdc1$wtdesire & cdc1$age > 30,"RED",ifelse(cdc1$weight > cdc1$wtdesire & cdc1$age <= 30 , "BLUE",ifelse(cdc1$weight <= cdc1$wtdesire & cdc1$age <= 30 ,"ORANGE","CYAN")))
+plot(weight-wtdesire ~ age , data = cdc1 ,col = color1, pch = 20)
+```
+
+b.
+```{r}
+boxplot.out <- function(sampledata1){
+  samreslt1 <- boxplot.stats(sampledata1)
+  LQ <- sum(sampledata1 < samreslt1$stats[2] - 1.5*(samreslt1$stats[4]-samreslt1$stats[2]))
+  UQ <- sum(sampledata1 > samreslt1$stats[4] + 1.5*(samreslt1$stats[4]-samreslt1$stats[2]))
+  ifelse(LQ > 0 & UQ >0 ,return("Both"),ifelse(LQ > 0 , return("Low"),ifelse(UQ > 0,return("High"),return("None"))))
+}
+```
+
+c.
+```{r}
+boxplot(weight-wtdesire ~ genhlth , data = cdc1)
+
+```
+
+d.
+```{r}
+tapply(cdc1$weight-cdc1$wtdesire , cdc1$genhlth , boxplot.out)
+```
+
+e.
+```{r}
+color1 <- ifelse(tapply(cdc1$weight-cdc1$wtdesire , cdc1$genhlth , boxplot.out) == "Both","Red",ifelse(tapply(cdc1$weight-cdc1$wtdesire , cdc1$genhlth , boxplot.out)== "High","Blue",ifelse(tapply(cdc1$weight-cdc1$wtdesire , cdc1$genhlth , boxplot.out)=="Low","Green","Yellow")))
+boxplot(weight-wtdesire ~ genhlth , data = cdc1,col = color1)
+```
+
+
+
+#### Question 4
+a.
+```{r}
+kobe1 <- read.csv("kobe.csv",header = T, stringsAsFactors = F)
+str(kobe1)
+throws1 = 0 
+i = 1
+while (throws1<3) {
+  if(kobe1$basket[i] == "H"){
+    throws1 = throws1+1
+    NoOfThrows1 <- i
+    i = i+1
+    
+  }else {
+    i = i+1
+  }
+  
+}
+print("Number  Throws Required:-")
+NoOfThrows1
+```
+
+b.
+```{r}
+throws12 = 0 
+i1 = 1
+while (throws12<6) {
+  if(kobe1$basket[i1] == "H"){
+    throws12 = throws12+1
+    NoOfThrows12 <- i1
+    i1 = i1+1
+    
+  }else {
+    i1 = i1+1
+  }
+  
+}
+NoOfSecond3Throws = NoOfThrows12 - NoOfThrows1
+NoOfSecond3Throws
+```
+
+c.
+```{r}
+
+```
+
+d.
+```{r}
+
+```
+
+e.
+```{r}
+
+```
+
+

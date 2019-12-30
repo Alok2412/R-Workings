@@ -1,0 +1,157 @@
+---
+title: "ST661: Assignment 1"
+author: "Alok Kumar Singh"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Question 1
+a.
+```{r}
+x<-10:14
+x<-c(10,11,12,13,14)
+x<-seq(10,14, by = 1)
+x
+```
+b.
+```{r}
+y<- c(14,10,11,13,12)
+y
+```
+c.
+```{r}
+x[3]
+```
+
+d.
+```{r}
+y[c(2,4)]
+```
+
+e.
+```{r}
+sum(x>y)
+```
+Sum(x>y) will give total number of values in x and y vector where value in x vector at a particular index is greater then the value of y vector at that index.
+
+f.
+```{r}
+sum(abs(x-y)==1)
+```
+sum(abs(x-y)==1) will give the total number of times after comparing the absolute value of x at particular index and subtracting it with y at that index to 1. 
+g.
+```{r}
+a<-(x^2)
+b<-sum(a)/sum(y)
+b
+```
+h.
+```{r}
+cbind(x,y)
+```
+
+
+#### Question 2
+a.
+```{r}
+house <- read.csv("house.csv")
+head(house)
+```
+b.
+```{r}
+subset(house,Country == 'Ireland')
+```
+c.
+```{r}
+f<-subset(house,Country == 'Spain')
+f$TooDark
+```
+
+d.
+```{r}
+g<-subset(house,NoIndoorToilet == 0)
+g
+```
+
+e.
+```{r}
+h<-subset(house,NoIndoorToilet == 0 & NoBathShower == 0)
+h
+```
+
+
+f.
+```{r}
+h$Country
+```
+
+g.
+```{r}
+max(house$Damp)
+```
+
+
+
+#### Question 3
+a.
+```{r}
+load("worldcup.Rdata")
+barplot(ngoals)
+mean1 <- mean(ngoals)
+print(paste("Mean is-",mean1))
+median1 <- median(ngoals)
+print(paste("Median is-",median1))
+uniqv<-unique(ngoals)
+mode1<-uniqv[which.max(tabulate(match(ngoals, uniqv)))]
+print(paste("The most frequent number of goals is -",mode1))
+```
+b.
+```{r}
+vg <-ngoals[c(52,104,168,232)]
+vg
+```
+c.
+```{r}
+year<-rep(seq(1990,2002, by = 4),times = c(52,52,64,64))
+year
+```
+
+d.
+```{r}
+factor(year)
+df <- data.frame(ngoals,year)
+df
+```
+
+e.
+```{r}
+matchn<-rep(c(1:52,1:52,1:64,1:64))
+matchn
+df1 <- data.frame(df,matchn)
+df1
+```
+
+
+f.
+```{r}
+df2 <- df1[c(52,104,168,232),]
+df2
+df2[which.max(df2$ngoals),2]
+
+```
+
+g.
+```{r}
+boxplot(ngoals~year,col = c("red","green","yellow","orange"))
+```
+
+The goal 8 is outlier as it falls outside the IQR which is 6 for this plot.
+
+h.
+```{r}
+
+```

@@ -1,0 +1,79 @@
+---
+title: "ST661: Assignment 3"
+author: "Alok Kumar Singh"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Question 1
+a.
+```{r}
+library(ggplot2)
+suppressMessages(library(alr4))
+library(MASS)
+head(Pima.tr)
+ggplot(data = Pima.tr) + geom_point(mapping = aes(x=npreg, y=bp))
+
+```
+b.
+```{r}
+npregf <- cut_interval(Pima.tr$npreg,n=4)
+Pima.tr <- cbind(Pima.tr , npregf)
+head(Pima.tr)
+```
+c.
+```{r}
+ggplot(data = Pima.tr , mapping = aes(y= bp , x = "")) + geom_boxplot() + facet_wrap(~Pima.tr$npregf)
+
+```
+
+d.
+```{r}
+ggplot(data = Pima.tr , mapping = aes(x= age ,y = glu, color =type)) + geom_point() + geom_smooth(method = lm )
+```
+e.
+```{r}
+ggplot(data = Pima.tr , mapping = aes(x= age ,y = glu)) + geom_point() + facet_wrap(~type)
+
+```
+
+#### Question 2
+a.
+```{r}
+```
+
+
+#### Question 3
+a.
+```{r}
+hep <- read.csv("Hep2012.csv")
+head(hep)
+hep_new <- na.omit(hep)
+head(hep_new)
+```
+b.
+```{r}
+hep_new <- cbind(hep_new, total = rowSums(hep_new[,2:8]))
+hep_new
+```
+c.
+```{r}
+best_performer <- hep_new[order(-hep_new$total),]$Athlete
+head(as.vector(best_performer),5)
+```
+
+d.
+```{r}
+names(sort(sapply(hep_new[c(-1,-9)],function(x) cor(x,hep_new$total)),decreasing = TRUE)[1:3])
+```
+
+e.
+```{r}
+library(GGally)
+GGally::ggduo(hep_new,columnsX = c("Long.Jump","X100m.Hurdles","X800m"), columnsY = c("total"),types = list(continuous = wrap("points")))
+```
+
