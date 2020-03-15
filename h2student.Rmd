@@ -1,0 +1,61 @@
+---
+title: "Assignment 2 ST464/ST684"
+author: "your name and student number"
+date: "`r format(Sys.time(), '%X %d %B, %Y')`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=4, fig.height=4)
+```
+
+
+```{r, eval=T, echo=FALSE}
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(GGally))
+
+```
+
+
+
+#### Question 1
+
+
+
+```{r eval=F} 
+# change to eval=T
+bfat <- read.table("bodyfat.txt", header=T)
+bfat <- bfat[,c("neck","abdomen", "knee", "ankle")]
+source("h2code.R")
+```
+
+(a)
+```{r}
+
+```
+
+
+(b)
+```{r}
+
+```
+
+
+
+
+(c)
+```{r}
+
+```
+
+
+
+(d)
+```{r}
+
+```
+
+
