@@ -1,0 +1,148 @@
+---
+title: "Assignment 3 ST464/ST684"
+author: "Alok Kumar Singh and 19250990"
+date: "`r format(Sys.time(), '%X %d %B, %Y')`"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=4, fig.height=4)
+```
+
+
+```{r, eval=T, echo=FALSE}
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(GGally))
+
+```
+
+
+
+#### Question 2
+
+
+
+```{r eval=T} 
+# change to eval=T
+library(MASS)
+library(ISLR)
+library(class)
+m <- median(Auto$mpg)
+Auto$mpg01 <- factor(ifelse(Auto$mpg <= m, 0, 1))
+ set.seed(1) 
+s <- sample(nrow(Auto), round(.5*nrow(Auto)))
+Atrain <- Auto[s,]
+Atest <- Auto[-s,]
+```
+
+
+(a)Plot the variables weight and acceleration using colour to show the two levels of
+mpg01 for the training set.
+```{r}
+ggplot(data=Atrain, aes(x=weight, y=acceleration, color=mpg01)) +
+geom_point(alpha=.5)
+
+```
+
+
+(b)Perform a linear discriminant analysis to predict mpg01, using variables weight and acceleration, on the training set. Use a plot to show the discriminant boundaries.What is the test error of the model obtained?
+```{r}
+f <- lda(mpg01~weight+acceleration,data=Atrain)
+f
+grid <- expand.grid(
+weight = seq(1600, 5200, length = 100),
+acceleration = seq(8, 25, length = 3)
+)
+grid$prob <- predict(f, grid)$posterior[,1]
+
+ggplot(data=Atrain, aes(x=weight, y=acceleration)) +
+geom_point(aes(color=mpg01),alpha=.5)+
+geom_contour(data=grid,aes(z=prob),breaks=.5, color="black")
+
+pred <- predict(f,Atest)$class
+table(Atest$mpg01, pred)
+mean(Atest$mpg01 != pred)
+```
+
+
+The test error of the model is 12.75%.
+
+
+(c)Repeat (b) using quadratic discriminant analysis. Which is better, LDA or QDA?
+```{r}
+f1 <- qda(mpg01~weight+acceleration,data=Atrain)
+f1
+grid1 <- expand.grid(
+weight = seq(1600, 5200, length = 100),
+acceleration = seq(8, 25, length = 3)
+)
+grid1$prob <- predict(f1, grid1)$posterior[,1]
+
+ggplot(data=Atrain, aes(x=weight, y=acceleration)) +
+geom_point(aes(color=mpg01),alpha=.5)+
+geom_contour(data=grid1,aes(z=prob),breaks=.5, color="black")
+
+pred1 <- predict(f1,Atest)$class
+table(Atest$mpg01, pred1)
+mean(Atest$mpg01 != pred1)
+```
+
+
+
+The test error of the model is 11.73%.
+
+QDA is slightly better then LDA.The decision boundaries for QDA are more flexible (non linear) but if the number of predictor is large then this method uses more parameters since in this only two predictors are used so we can say that QDA is better then LDA.
+
+
+(d)Perform a linear discriminant analysis to predict mpg01, using variables displacement, horsepower, weight and acceleration on the training set. What is the test error of the model obtained?
+
+```{r}
+f2 <- lda(mpg01~displacement+horsepower+weight+acceleration,data=Atrain)
+f2
+pred2 <- predict(f2,Atest)$class
+table(Atest$mpg01, pred2)
+mean(Atest$mpg01 != pred2)
+```
+
+
+The test error of model is :- 12.75%
+
+(e) Repeat (d) using quadratic discriminant analysis.Which is better, LDA or QDA?
+```{r}
+f3 <- qda(mpg01~displacement+horsepower+weight+acceleration,data=Atrain)
+f3
+pred3 <- predict(f3,Atest)$class
+table(Atest$mpg01, pred3)
+mean(Atest$mpg01 != pred3)
+```
+
+
+The test error for this model is:- 12.75%
+
+In this particular case the test error for the model is same in both the cases i.e for LDA and QDA but since the number of predictors are large so in case of QDA number of parameters will be larger then LDA so LDA will be better in this particuar case.
+
+(f)Perform KNN with response of mpg01, and the four predictors displacement, horse-
+power, weight and acceleration. Remember to scale the predictors. Use k = 5 and
+k = 30. Which value of k gives the best result on the test set?
+```{r}
+xdata <- scale(Atrain[,3:6])
+means <- attr(xdata,"scaled:center")
+sds<- attr(xdata,"scaled:scale")
+xdataTest <- scale(Atest[,3:6], center=means, scale=sds)
+pred4 <- knn(xdata, xdataTest, Auto[s,10], k=5)
+tab3 <- table(Atest$mpg01, pred4)
+tab3
+mean(Atest$mpg01 != pred4)
+pred5 <- knn(xdata, xdataTest, Auto[s,10], k=30)
+tab4 <- table(Atest$mpg01, pred5)
+tab4
+mean(Atest$mpg01 != pred5)
+```
+
+
+
+The test error with k = 5 is 11.73% and test error with k = 30 it is 12.24%.
+so we can conclude that k = 5 gives the best result on the test data set.

@@ -1,0 +1,161 @@
+---
+title: "Assignment 4 ST464/ST684"
+author: "Alok Kumar Singh 19250990"
+date: "`r format(Sys.time(), '%X %d %B, %Y')`"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=4, fig.height=4)
+```
+
+
+```{r, eval=T, echo=FALSE}
+suppressMessages(library(MASS))
+suppressMessages(library(randomForest))
+suppressMessages(library(gam))
+suppressMessages(library(tree))
+```
+
+
+
+#### Question 2 Using the Boston data, with dis as the response and predictors medv, age and nox
+
+
+(a) Using a seed of 123, split the data into training 60% and test 40%. Using the training data, fit a generalised additive model (GAM). Use ns with 4 degrees of freedom for each predictor.
+
+```{r}
+set.seed(123)
+s <- sample(nrow(Boston), round(.6*nrow(Boston)))
+Boston_train <- Boston[s,]
+Boston_test <- Boston[-s,]
+Boston.gam <- lm(dis ~ ns(medv, 4)+ ns(age, 4) + ns(nox, 4), data=Boston_train)
+summary(Boston.gam)
+```
+
+
+(b)Use plot.Gam to display the results. Does it appear if a linear term is appropriate for any of the predictors?
+
+```{r}
+plot.Gam(Boston.gam, terms=c("ns(medv, 4)","ns(age, 4)","ns(nox, 4)"))
+```
+
+
+
+Yes, from the plot age seems to be linear and we need to do further analysis to check its linearity.
+
+
+(c)Simplify the model fit in part (a). Refit the model. Use anova to compare the two
+fits and comment on your results.
+
+```{r}
+Boston.gam1 <- lm(dis ~ ns(medv, 4)+ age+ ns(nox, 4), data=Boston_train)
+anova(Boston.gam1,Boston.gam)
+```
+
+
+Our Null hypothesis is that model 1 is significant and here our model 1 is where age is not with ns in our new fit we can clearly see that p value is more then 0.05 so we can not reject the null hypothesis and say that LM model is best model.
+
+
+
+#### Question 4 
+
+
+(a)For the training data in question 2, fit a tree model. Use dis as response, and predictors medv, age and nox. Draw the tree. Calculate the training and test MSE.
+
+```{r}
+Boston.tree <- tree(dis ~ medv + age + nox, data = Boston_train)
+summary(Boston.tree)
+plot(Boston.tree)
+text(Boston.tree, cex=.5, pretty=0)
+
+# to calculate MSE with train data
+pred <- predict(Boston.tree, newdata=Boston_train)
+mean((pred - Boston_train$dis)^2)
+
+# to calculate MSE with test data
+pred1 <- predict(Boston.tree, newdata=Boston_test)
+mean((pred1 - Boston_test$dis)^2)
+```
+
+
+
+
+(b)Use cv.tree to select a pruned tree. If pruning is required, fit and draw the pruned tree. Calculate the training and test MSE. Compare the results to those in(a).
+
+```{r}
+set.seed(123)
+Boston.cvtree <- cv.tree(Boston.tree)
+plot(Boston.cvtree$size,Boston.cvtree$dev,type="b")
+
+w <- which.min(Boston.cvtree$dev)
+Boston.cvtree$size[w]
+```
+
+
+Yes according to our plot we can see that the with size 4 we are getting smallest cross validated residual sum of squares so we need to do pruning for this, and also we checked with the function which.min and get the same result.
+
+
+```{r}
+#pruning the tree with best = 4
+Boston.tree1 <- prune.tree(Boston.tree, best=4)
+summary(Boston.tree1)
+
+#ploting the tree
+plot(Boston.tree1)
+text(Boston.tree1, cex=.5, pretty=0)
+
+
+# to calculate MSE with train data
+pred2 <- predict(Boston.tree1, newdata=Boston_train)
+mean((pred2 - Boston_train$dis)^2)
+
+
+# to calculate MSE with test data
+pred3 <- predict(Boston.tree1, newdata=Boston_test)
+mean((pred3 - Boston_test$dis)^2)
+
+```
+
+
+
+The tree in (a) is having slightly less MSE i.e it has 1.01 and and pruned tree has 1.07 with training dataset. Simillarly with the test dataset tree in (a) has slightly more MSE i.e 0.845 and pruned tree is having 0.846 MSE. with this slight changes in MSE for tree in (a) we will go with the full model.
+
+
+
+(c)Now fit a randomForest. Use dis as response, and predictors medv, age and nox.
+Calculate the training and test MSE.
+
+```{r}
+Boston.rf <- randomForest(dis ~ medv + age + nox, data = Boston_train)
+Boston.rf
+
+#to caculate MSE with train set
+pred4 <- predict(Boston.rf, newdata= Boston_train)
+mean((pred4 - Boston_train$dis)^2)
+
+#to calculate MSE with Test Set
+pred5 <- predict(Boston.rf, newdata= Boston_test)
+mean((pred5 - Boston_test$dis)^2)
+```
+
+
+
+(d)Which fit is better, random forest, the (optionally pruned) tree or the GAM? Compare their performance on the test data.
+
+
+```{r}
+#to check for MSE of GAM with test set
+pred6 <- predict(Boston.gam1, newdata= Boston_test)
+mean((pred6 - Boston_test$dis)^2)
+
+```
+
+Answer:-
+
+Random forest seems to be the best fit as we can see this by comparing the MSE also.
+MSE for Random forest with test set is very less among other two i.e MSE for random forest is 0.744 whereas MSE for Pruned tree and GAM are 0.846 and 0.899 respectively.
+
+
