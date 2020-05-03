@@ -1,0 +1,125 @@
+---
+title: "Assignment 2 ST466"
+author: "Alok Kumar Singh 19250990"
+date: "`r format(Sys.time(), '%X %d %B, %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r}
+library(dplyr)
+library(GGally)
+intensity <- c(0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0)
+m <- c(40,40,40,40,40,40,40,40,40)
+Y <- c(2,4,6,6,10,15,25,27,33)
+current.data <- data.frame(intensity,m,Y)
+current.data$p_yes <- current.data$Y/current.data$m
+current.data$odds <- current.data$p_yes/(1-current.data$p_yes)
+current.data$log_odds <- log(current.data$odds)
+current.data$diff <- current.data$m - current.data$Y
+current.data
+```
+
+##Q1
+##(a) It was decided that a logistic regression model with intensity as the predictor would be appropriate for these data. Specify the model algebraically and explain your notation. Justify this choice of model over a simple linear regression model.
+
+```{r}
+## logit(pi) = log(pi/1-pi) = B0 + B1X
+## B0 is intercept 
+## B1 is slope
+## X is intensity
+## pi is probablity of success for mouth movement
+## Y ~ binomial, # success out of n trials
+## Y ~ B(pi,n)
+## pi = Y/n
+
+## The response is binomial variable which can be better explained by the logistic regression where as simple linear regression shows normal distribution the proportion of mouth movement will always will be restricted between 0 and 1 these type of data can be better explained by logistic regression. This is because simple regression cannot be limited to the values of 0 and 1's and it gives wrong results most of the time. 
+```
+
+
+##(b) Using the raw data construct an appropriate graph to justify the assumed relationship (under this model) between the log odds of mouth movement and intensity.
+
+```{r}
+plot(current.data$log_odds ~ current.data$intensity)
+```
+
+
+
+##(c) Fit the logistic regression model using R. Provide the logistic regression equation based on the model output.
+
+```{r}
+glm_data <- current.data %>% mutate(failure = m - Y) %>% select(Y,failure)%>% as.matrix()
+fit_logreg <- glm(glm_data ~ intensity ,data = current.data,family = binomial())
+summary(fit_logreg)
+```
+
+
+## fitted model-
+fitted model:- intercept = -3.114 slope = 1.122
+log(pi/1-pi) = -3.114 +1.122intensity
+
+
+## (d) Provide an interpretation of the intensity coefficient. Use a Wald test to determine if the intensity coefficient is significant.
+
+```{r}
+## Interpretation:- 
+## coef of intensity:- 1.122
+## by increasing intensity by one unit changes the odds of mouth movement by a factor of 3.071
+## B1 = 1.122
+## sd error:- 0.125
+## wald test
+## Ho: B1 = 0
+## Ha: B1 != 0
+wald_test <- 1.122/0.125
+wald_test
+```
+
+
+since test statistics is greater than 1.96 so we reject the null hypothesis and conclude that the term intensity is significant.
+
+
+## (e) Use a likelihood ratio test to test the hypothesis that the odds of mouth movement is independent of intensity. State the null and alternative hypothesis. Provide the test statistic for the hypothesis test.Provide the critical value under the null hypothesis. Provide justification for the conclusions of your test.
+
+```{r}
+## Ho: odds of mouth movement is independent of intensity(B1 = 0)
+## Ha: odds of mouth movement and intensity are dependent (B1 != 0)
+## degrees of freedom = 1.
+## 95% significant level critical value = 3.84
+## 99% significant level critical value = 6.634
+## the test stats = 120.686 - 2.969
+              ##  = 117.72
+## the statistics is greter then the critical value under Ho so we reject and we can say B1 != 0
+```
+
+
+## (f) Produce an appropriate plot to assess if the model is doing a good job of capturing the observed relationship between the proportion of mouth movement and intensity.
+
+```{r}
+fit0 <- glm(Y ~ 1, data = current.data)
+fit0
+
+fit1 <- glm(Y ~ intensity, data = current.data)
+fit1
+```
+
+
+```{r}
+
+current_res <- current.data %>%
+mutate(pred_fit0 = predict(fit0, type = "response"),
+pred_fit1 = predict(fit1, type = "response"))
+
+ggplot(current_res, aes(x = intensity, y = Y)) +
+geom_point()+
+geom_line(aes(x = intensity, pred_fit0, colour = "fit0")) +
+geom_line(aes(x = intensity, pred_fit1, colour = "fit1")) +
+labs(colour = "")
+```
+
+
+
+

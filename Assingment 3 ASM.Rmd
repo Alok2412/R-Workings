@@ -1,0 +1,131 @@
+---
+title: "Assignment 3 ST466"
+author: "Alok Kumar Singh 19250990"
+date: "`r format(Sys.time(), '%X %d %B, %Y')`"
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+
+Q1. School administrators study the attendance behavior of secondary school students. A predictor of the number of days of absence includes a standardized test in math and gender identity. The data can be found in attendance.csv.
+
+a). Fit the Poisson regression model to these data. Provide the Poisson regression equation based on the model output. Provide an interpretation of the coefficients.
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(MASS)
+attend <- read.csv("attendance.csv")
+head(attend)
+fit <- glm(daysabs ~ ., family = poisson(), data = attend)
+summary(fit)
+
+```
+
+
+
+Answer:- 
+
+muhat = exp(BetaNot + BetaOneX1 + BetaTwoX2)
+
+The model fit:-    
+muhat = exp(2.4031733 - 0.2548442gendermale - 0.0112160math)    
+
+Interpretations of coefficient:-
+
+For X1 increases from x1 to x1 + 1 and other x’s remain fixed. Then mu
+changes from
+mu(x) = exp(BetNot + BetaOnex1 + ... + BetaKxk)
+to
+mu(x + 1) = exp(BetaNot + BetaOne(x1 + 1) + ... + BetaKxk)
+= mu(x)exp(BetaOne)
+Each unit increase in x1 multiplies the mean response by exp(BetaOne) .
+
+
+Intercept – for a unit change in the predictor variables, the difference in the logs of expected counts is expected to change by the respective regression coefficient, given the other predictor variables in the model are held constant.
+
+maths-For a increase of one point in maths, the difference in the logs of expected counts would be expected to decrease by 0.0012 unit, while holding the other variables in the model constant.
+
+gendermale –  This is the estimated Poisson regression coefficient comparing male to female, given the other variables are held constant in the model. The difference in the logs of expected counts is expected to decreease by 0.2548 unit  for males compared to females, while holding the other variables constant in the model.
+
+
+
+b). Pot the observed number of absent days vs the math score and distinguish the points based on gender (using colour). Overlay predictions from your model on this plot and comment on the model fit.
+
+
+```{r}
+attend_res <- attend %>% mutate(fit_p = predict(fit, type = "response"),
+res_p = residuals(fit))
+
+ggplot(attend_res, aes(x = math, y = daysabs, color = gender)) +
+geom_smooth(method = "glm", se = F , aes(fill = fit_p),method.args = list(family = 'poisson')) + geom_point()
+
+library(AER)
+dispersiontest(fit)
+
+```
+
+
+
+We can see that the model is not perfectly fit to this dataset and also we can see from the dispersion test that alternative hypothesis is true which suggest that the dispersion is greater than 1 which suggest that there is overdispersion of data. So there is further investigation is required for this and we can also check for quassi poisson or negative disperssion methods to overcome this overdispersion. 
+
+
+c). Using equations, specify a negative binomial regression model for these data. Identify the random component, the systematic component and the link function.
+
+Answer:-   
+
+random component =  Y ~ Neg.binom(r, pi)       
+systematic component =  BetaNot + BetaOneX1 + BetaTwoX2    
+link function:-      
+log(mu) = BetaNot + BetaOneX1 + BetaTwoX2
+Where log(mu) is called as link function.     
+
+
+d). Fit the negative binomial model to these data. Has your interpretation of the coefficients changed compared to the fitted Poisson model? How have the standard errors been impacted?
+
+```{r}
+fit1 <- glm.nb(formula = daysabs ~ ., data = attend)
+summary(fit1)
+```
+
+
+
+Answer:-
+
+Yes, The interpretation would slightly change for negative binomial from poission model as there will be slight change in coefficient of the parameters.      
+
+standard errors have been scaled in negative binomial model and it is biased in poisson distribution. It is very high in Negative binomial then poisson distribution.           
+
+
+e).Provide a brief description of how the variance assumptions underlying the models specified in (a) and (c) differ from each other. What is the estimated dispersion parameter for the Negative Binomial model?
+
+
+Answer:-
+
+The Poisson distribution assumes that the mean and variance are the same. When data shows extra variation that is greater than the mean. This situation is called overdispersion and negative binomial regression is more flexible in that regard than Poisson regression. The negative binomial distribution has one parameter more than the Poisson regression that adjusts the variance independently from the mean.    
+
+Estimated dispersion parameter for the negative binomial model is: 0.8706
+
+
+f).Using equations, describe how you would calculate AIC for the fitted models. Use AIC to choose between the models fitted above.
+
+```{r}
+#Answer:-
+
+#AIC = -2l + 2p      
+#where l is log likelihood of the model and p is the number of parameters     
+
+#for poisson binomial model :-    
+ AIC <- -2*as.numeric(logLik(fit))+2*(length(fit$coefficients))     
+ AIC
+#for negative binomial model :-
+ # We are adding one to the number of parameters for variance 
+ AIC_NB <- -2*as.numeric(logLik(fit1))+2*(length(fit1$coefficients)+1)
+ AIC_NB
+
+
+```
+

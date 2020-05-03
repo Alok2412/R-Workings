@@ -1,0 +1,134 @@
+---
+title: "Assignment 4 ST466"
+author: "Alok Kumar Singh 19250990"
+date: "`r format(Sys.time(), '%X %d %B, %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+## Question:- 
+A MSc student is analyzing the quality of a recent demographic survey in Ireland. She wants to assess the chance of incorrect reporting of the number of children over 5. She proceeds as follows: from all births that were reported to have occurred 5 to 10 years before the survey, she selects a random sample of 100 births. She then does a follow up survey to verify if these births if they were correctly reported. She finds that 10 births were reported incorrectly.
+
+Let theta be the proportion of incorrectly reported births among all reported births 5 to 10 years before the survey. Assume Y |theta ∼ Bin(N, theta) and use a Bayesian approach to obtain the posterior distribution for theta based on the following:
+
+
+
+a) Suppose that the MSc student had only considered values greater than 0.5 to be plausible outcomes for theta. Use a discrete prior distribution on theta to reflect the MSc students prior assumption. Obtain and plot the posterior distribution. Report the posterior mean and interpret your findings.
+
+
+```{r}
+library(tidyverse)
+n = 100
+y = 10
+
+theta <- seq(0.5,1,by = 0.1)
+likelihood <- dbinom(x = 10,size = 100,prob = theta)
+
+## Value of discrete Prior is:- 
+prior <- 1/length(theta)
+prior
+```
+
+
+
+```{r}
+## value of marginal likelihood
+mlik <- 1/length(theta)*(sum(dbinom(10, 100, prob = theta)))
+mlik
+
+## Value of posterior distribtion is:-
+posterior <- likelihood*prior/mlik
+posterior
+```
+
+
+
+```{r}
+## Posterior mean is:-
+posterior_mean <- sum(posterior*theta)
+posterior_mean
+
+
+## Plot of posterior distribution
+binom_ex <- tibble(theta, prior, likelihood, posterior)
+
+binom_ex <- binom_ex %>% pivot_longer(cols = prior:posterior, 
+                                      names_to = "type", 
+                                      values_to = "value") %>% 
+  mutate(type = factor(type, levels =c("prior","likelihood","posterior")))
+
+p1 <- ggplot(binom_ex, aes(x = theta, y = value)) +
+  geom_segment(aes(x = theta, y = value, xend=theta,yend=0, colour = type)) +
+  facet_wrap(~type, scales = "free") +
+  theme_bw()+
+  theme(legend.position = "none",
+        text = element_text(size=10),
+        axis.text.x = element_text(angle=45, hjust=1)) +
+  xlab("theta")
+p1
+
+```
+
+
+
+
+Interpretation:-
+
+posterior mean is:- 0.5
+
+for theta = 0.1 likelihood seems to be the heighest and rest other values of theta it is not even visible in likelihood graph which is what we expect as y/n = 10/100 = 0.1.  
+
+prior assumption in the given data is not appropriate as posterior distribution seems to be driven by prior.
+
+
+b) Instead of assuming a discrete prior, assume an appropriate Uniform prior distribution on theta. Provide a point estimate and a 95% credible interval for the proportion of incorrectly reported births. How does this compare to the results from (a)?
+
+```{r}
+theta1 <- seq(0,1,by = 0.1)
+prior1 <- dunif(theta1, 0,1)
+likelihood1 <- dbinom(x = 10,size = 100,prob = theta1)
+
+posterior1 <- likelihood1*prior1
+
+binom_ex1 <- tibble(theta1, prior1, likelihood1,posterior1)
+
+binom_ex1 <- binom_ex1 %>% pivot_longer(cols = prior1:posterior1, 
+                                      names_to = "type", 
+                                      values_to = "value") %>% 
+  mutate(type = factor(type, levels =c("prior1","likelihood1","posterior1")))
+
+p2 <- ggplot(binom_ex1, aes(x = theta1, y = value)) +
+  geom_segment(aes(x = theta1, y = value, xend=theta1,yend=0, colour = type)) +
+  facet_wrap(~type, scales = "free") +
+  theme_bw()+
+  theme(legend.position = "none",
+        text = element_text(size=10),
+        axis.text.x = element_text(angle=45, hjust=1)) +
+  xlab("theta")
+p2
+
+?theme
+## posterior mean
+posterior_mean1 <- (y+1)/(n+2)
+posterior_mean1
+
+
+## 95% credible interval for the proportion of incorrectly reported births
+qbeta(c(0.025,0.975), y+1,n-y+1)
+
+```
+
+
+Interpretation:-
+
+posterior mean when we are using uniform disribution is :- 0.107
+
+95% credible interval is :- (0.556 0.174) which includes the maximum likelihood estimate for the incorrectly reported births. In this posterior is driven by data as opposed to question in a.
+
+so we can say that uniform prior distribution in b is more appropriate then the discrete prior distribution in a.
+
+
+
+
